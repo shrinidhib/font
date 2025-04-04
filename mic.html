@@ -130,7 +130,7 @@
     
         
     
-        recognition.onresult = function(event) {
+        recognition.onresult = async function(event) {
             const lastResult = event.results[event.results.length - 1];
             const transcript = Array.from(event.results).map(result => result[0].transcript).join(" ");
             console.log(transcript)
@@ -161,7 +161,7 @@
     
                 wordElement.textContent = newText + ' ';
                 wordElement.className = 'word';
-                wordElement.style.setProperty("font-family", fontFamily.trim().toString(), "important");
+                await wordElement.style.setProperty("font-family", fontFamily.trim().toString(), "important");
                 
                 // Set initial small font size
                 wordElement.style.fontSize = "10px"; 
