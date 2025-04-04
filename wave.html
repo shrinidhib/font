@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Audio Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Real-Time Audio Wave & Analysis</h1>
+        <audio id="audio" controls autoplay></audio>
+        <canvas id="audioWave"></canvas>
+        <div class="translation">
+            <h2>Translated Text:</h2>
+            <p id="translatedText" class="normal">Speak now...</p>
+        </div>
+        <div class="audioStats">
+            <p><strong>Speed:</strong> <span id="speed">Normal</span></p>
+            <p><strong>Volume:</strong> <span id="volume">Normal</span></p>
+            <p><strong>Pitch:</strong> <span id="pitch">Normal</span></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

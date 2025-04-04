@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Analysis with WaveSurfer</title>
+    <link rel="stylesheet" href="index.css">
+
+</head>
+<body>
+
+    <h1>Speech Analysis</h1>
+    <button id="record">Start Recording</button>
+    <button id="reset" >Reset</button>
+    <button id="pause" style="display:none;">Pause</button>
+    <div class="lang-toggle">
+        <span class="lang-label">Language:</span>
+        <button id="langToggle">English</button>
+    </div>
+
+    <p id="status">Press "Start Recording" and speak...</p>
+
+    <div id="waveform" style="border: 1px solid #ddd; margin-top: 10px;"></div>
+
+    <div class="text-display" id="textDisplay"></div>
+    <div class="speech-stats" id="speechStats">Speech characteristics will appear here</div>
+
+    <p><strong>Volume:</strong> <span id="volume-level">N/A</span></p>
+    <p><strong>Pitch:</strong> <span id="pitch-level">N/A</span></p>
+    <p><strong>Speech Speed:</strong> <span id="speed-level">N/A</span></p>
+
+    <!-- Import the JavaScript file -->
+    <script type="module" src="./script.js"></script>
+
+</body>
+</html>

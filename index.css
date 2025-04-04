@@ -1,0 +1,233 @@
+@font-face {
+    font-family: 'SoundType-Regular';
+    src: url('./SoundType-Regular.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Loud';
+    src: url('./SoundType-Loud.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft';
+    src: url('./SoundType-Soft.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-HighPitch';
+    src: url('./SoundType-HighPitch.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-LowPitch';
+    src: url('./SoundType-LowPitch.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Fast';
+    src: url('./SoundType-Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Slow';
+    src: url('./SoundType-Slow.ttf') format('truetype');
+}
+
+/* Two-characteristic combinations */
+@font-face {
+    font-family: 'SoundType-Loud-HighPitch';
+    src: url('./SoundType-Loud+HighPitch.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Loud-LowPitch';
+    src: url('./SoundType-Loud+LowPitch.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Loud-Fast';
+    src: url('./SoundType-Loud+Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Loud-Slow';
+    src: url('./SoundType-Loud+Slow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-HighPitch';
+    src: url('./SoundType-Soft+HighPitch.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-LowPitch';
+    src: url('./SoundType-Soft+LowPitch.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-Fast';
+    src: url('./SoundType-Soft+Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-Slow';
+    src: url('./SoundType-Soft+Slow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-HighPitch-Fast';
+    src: url('./SoundType-HighPitch+Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-HighPitch-Slow';
+    src: url('./SoundType-HighPitch+Slow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-LowPitch-Fast';
+    src: url('./SoundType-LowPitch+Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-LowPitch-Slow';
+    src: url('./SoundType-LowPitch+Slow.ttf') format('truetype');
+}
+
+/* Three-characteristic combinations */
+@font-face {
+    font-family: 'SoundType-Loud-HighPitch-Fast';
+    src: url('./SoundType-Loud+HighPitch+Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-LowPitch-Slow';
+    src: url('./SoundType-Soft+LowPitch+Slow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Loud-LowPitch-Slow';
+    src: url('./SoundType-Loud+LowPitch+Slow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-HighPitch-Fast';
+    src: url('./SoundType-Soft+HighPitch+Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-HighPitch-Slow';
+    src: url('./SoundType-Soft+HighPitch+Slow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Soft-LowPitch-Fast';
+    src: url('./SoundType-Soft+LowPitch+Fast.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Loud-HighPitch-Slow';
+    src: url('./SoundType-Loud+HighPitch+Slow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SoundType-Loud-LowPitch-Fast';
+    src: url('./SoundType-Loud+LowPitch+Fast.ttf') format('truetype');
+}
+/* 
+body {
+    font-family: 'SoundType-Regular';
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f7f7f7;
+    color: #333;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 60vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 8px 15px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #3a80d2;
+}
+
+button.active {
+    background-color: #2c6cb0;
+}
+
+.status {
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.text-display {
+    flex-grow: 1;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+    min-height: 200px;
+    overflow-y: auto;
+    line-height: 1.6;
+    font-size: 20px;
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.word {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 2px 0;
+}
+
+.speech-stats {
+    padding: 10px;
+    background-color: #f0f7ff;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #444;
+    margin-top: 10px;
+}
+
+.instruction {
+    text-align: center;
+    margin-top: 15px;
+    color: #888;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.lang-toggle {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.lang-label {
+    font-size: 14px;
+    color: #666;
+} */

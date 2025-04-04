@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+        <link rel="preload" href="./SoundType-Soft+Slow.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+
+      
+ 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Lab - Typography Experiment</title>
+    <link rel="stylesheet" href="index.css">
+
+   
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Sound Lab</div>
+            <div class="controls">
+                <div class="lang-toggle">
+                    <span class="lang-label">Language:</span>
+                    <button id="langToggle">English</button>
+                </div>
+                <button id="resetBtn">Reset</button>
+            </div>
+        </div>
+        
+        <div class="status" id="status">Press SPACE and start speaking...</div>
+        
+        <div class="text-display" id="textDisplay"></div>
+        
+        <div class="speech-stats" id="speechStats">Speech characteristics will appear here</div>
+        
+        <div class="instruction">Press SPACEBAR to start/stop speech recognition</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if browser supports Speech Recognition
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                document.getElementById('status').textContent = 'Speech recognition is not supported in your browser. Try Chrome or Edge.';
+                return;
+            }
+
+            // Initialize variables
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            const statusElement = document.getElementById('status');
+            const textDisplayElement = document.getElementById('textDisplay');
+            const speechStatsElement = document.getElementById('speechStats');
+            const langToggleButton = document.getElementById('langToggle');
+            const resetButton = document.getElementById('resetBtn');
+            
+            let isRecording = false;
+            let currentLanguage = 'en-IN';
+            let wordStartTime = 0;
+            let wordCount = 0;
+            let lastTimestamp = 0;
+            let speechSpeed = 0;
+            let lastChar = 0;
+            
+            // Configure speech recognition
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = currentLanguage;
+            
+            // Toggle language
+            langToggleButton.addEventListener('click', function() {
+                if (currentLanguage === 'en-US') {
+                    currentLanguage = 'hi-IN';
+                    langToggleButton.textContent = 'Hindi';
+                } else {
+                    currentLanguage = 'en-US';
+                    langToggleButton.textContent = 'English';
+                }
+                recognition.lang = currentLanguage;
+                
+                if (isRecording) {
+                    recognition.stop();
+                    setTimeout(() => recognition.start(), 100);
+                }
+            });
+            
+            // Reset button
+            resetButton.addEventListener('click', function() {
+                textDisplayElement.innerHTML = '';
+                speechStatsElement.textContent = 'Speech characteristics will appear here';
+                wordCount = 0;
+            });
+            
+            // Space key to toggle recording
+            document.addEventListener('keydown', function(event) {
+                if (event.code === 'Space') {
+                    event.preventDefault();
+                    toggleRecording();
+                }
+            });
+            
+            // Toggle recording function
+            function toggleRecording() {
+                if (isRecording) {
+                    recognition.stop();
+                    isRecording = false;
+                    statusElement.textContent = 'Press SPACE and start speaking...';
+                } else {
+                    recognition.start();
+                    isRecording = true;
+                    wordStartTime = Date.now();
+                    statusElement.textContent = 'Listening...';
+                }
+            }
+            
+            // Speech recognition result event
+            recognition.onresult = function(event) {
+                const lastResult = event.results[event.results.length - 1];
+
+                const transcript = Array.from(event.results).map(result=>result[0].transcript).join(" ")
+               
+                // const transcript = lastResult[0].transcript;
+                const confidence = lastResult[0].confidence;
+                
+                // Get the new text since last update
+                const newText = transcript.substring(lastChar);
+                // console.log("transcript: ", transcript)
+                // console.log("new test: ", newText)
+                lastChar = transcript.length;
+                
+                // Calculate speech characteristics
+                const currentTime = Date.now();
+                const elapsedTimeSec = (currentTime - wordStartTime) / 1000;
+                // wordStartTime = currentTime
+                
+                // Find the words in the new text
+                const words = newText.trim().split(/\s+/);
+                
+                // Process only non-empty words
+                words.filter(word => word.length > 0).forEach(word => {
+                    wordCount++;
+                    
+                    // Calculate speech speed (words per second)
+                    speechSpeed = wordCount / elapsedTimeSec;
+
+                    console.log("confidence: ", confidence)
+                    
+                    // Determine volume category based on confidence
+                    let volume = 'Normal';
+                    if (confidence >= 0.7) {
+                        volume = 'Loud';
+                    } else if (confidence < 0.5) {
+                        volume = 'Soft';
+                    }
+                    
+                    // For this demo, let's approximate pitch based on word length
+                    // In a real implementation, you'd use the Web Audio API to analyze frequency
+                    let pitch = 'Normal';
+                    // Simulate pitch detection (in real implementation, use frequency analysis)
+                    // For demo purposes: short words (≤3 chars) = high pitch, long words (≥7 chars) = low pitch
+                    if (word.length <= 3) {
+                        pitch = 'HighPitch';
+                    } else if (word.length >= 7) {
+                        pitch = 'LowPitch';
+                    }
+                    
+                    // Determine speed category
+                    console.log(speechSpeed)
+                    let speed = 'Normal';
+                    if (speechSpeed >= 2) {
+                        speed = 'Fast';
+                    } else if (speechSpeed <= 1.5) {
+                        speed = 'Slow';
+                    }
+                    
+                    // Update speech stats display
+                    updateSpeechStats(volume, pitch, speed);
+                    
+                    // Apply appropriate font based on characteristics
+                    const fontFamily = determineFontFamily(volume, pitch, speed);
+                    console.log(fontFamily)
+                    
+                    // Create and append the styled word
+                    const wordElement = document.createElement('span');
+                    wordElement.textContent = word + ' ';
+                    wordElement.className = 'word';
+                 
+                    wordElement.style.setProperty("font-family", fontFamily.trim().toString(), "important");
+                 
+                    textDisplayElement.appendChild(wordElement);
+                });
+                
+                // Scroll to the bottom of the text display
+                textDisplayElement.scrollTop = textDisplayElement.scrollHeight;
+            };
+            
+            // Determine which font to use based on speech characteristics
+            function determineFontFamily(volume, pitch, speed) {
+                // Skip normal characteristics for cleaner font names
+                const characteristics = [];
+                
+                if (volume !== 'Normal') characteristics.push(volume);
+                if (pitch !== 'Normal') characteristics.push(pitch);
+                if (speed !== 'Normal') characteristics.push(speed);
+                
+                if (characteristics.length === 0) {
+                    return 'SoundType-Regular';
+                }
+                
+                return 'SoundType-' + characteristics.join('-');
+            }
+            
+            // Update speech stats display
+            function updateSpeechStats(volume, pitch, speed) {
+                const characteristics = [];
+                
+                if (volume !== 'Normal') characteristics.push(volume.toUpperCase());
+                if (pitch !== 'Normal') {
+                    characteristics.push(pitch === 'HighPitch' ? 'HIGH PITCH' : 'LOW PITCH');
+                }
+                if (speed !== 'Normal') characteristics.push(speed.toUpperCase());
+                
+                if (characteristics.length === 0) {
+                    speechStatsElement.textContent = 'Your speech was at a NORMAL level.';
+                } else {
+                    speechStatsElement.textContent = 'Your speech was ' + characteristics.join(' & ') + '.';
+                }
+            }
+            
+            // Handle errors
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                statusElement.textContent = 'Error: ' + event.error + '. Try again.';
+                isRecording = false;
+            };
+            
+            // Restart recognition when it ends
+            recognition.onend = function() {
+                if (isRecording) {
+                    recognition.start();
+                }
+            };
+        });
+    </script>
+</body>
+</html>
