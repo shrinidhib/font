@@ -1,5 +1,5 @@
-import WaveSurfer from "./node_modules/wavesurfer.js/dist/wavesurfer.esm.js";
-import RecordPlugin from "./node_modules/wavesurfer.js/dist/plugins/record.esm.js";
+import WaveSurfer from "./lib/wavesurfer.esm.js";
+import RecordPlugin from "./lib/record.esm.js";
 
 
 let wavesurfer, recordPlugin, startTime, wordCount = 0;
