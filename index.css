@@ -110,6 +110,15 @@
     font-family: 'SoundType-Loud-LowPitch-Fast';
     src: url('./SoundType-Loud+LowPitch+Fast.ttf') format('truetype');
 }
+
+@font-face {
+    font-family: 'main';
+    src: url('./DepartureMono-Regular.otf');
+}
+
+.main{
+    font-family: 'main';
+}
 /* 
 body {
     font-family: 'SoundType-Regular';
