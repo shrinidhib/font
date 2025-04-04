@@ -30,7 +30,175 @@
     <p><strong>Speech Speed:</strong> <span id="speed-level">N/A</span></p>
 
     <!-- Import the JavaScript file -->
-    <script type="module" src="./script.js"></script>
+    
+    <script type="module">
+        import WaveSurfer from 'https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.esm.js';
+        import RecordPlugin from 'https://unpkg.com/wavesurfer.js@7/dist/plugins/record.esm.js';
+
+        let wavesurfer;
+  let recordPlugin;
+  let recognition;
+  let isRecording = false;
+  let startTime;
+  let lastTimeCheck = Date.now();
+  let wpmWindow = 500;
+  let wordCount = 0;
+  let wordStartTime = 0;
+  let lastChar = 0;
+  let currentLanguage = 'en-US';
+  let volumeCategory, pitchCategory, speedCategory;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const box = document.querySelector("#box76");
+    const text88 = document.querySelector("#text88");
+    const text89 = document.querySelector("#text89");
+    const text92 = document.querySelector("#text92");
+    const text93 = document.querySelector("#text93");
+    const button1 = document.querySelector("#button1");
+    const button2 = document.querySelector("#button2");
+    const button3 = document.querySelector("#button3");
+
+    if (!box || !text88 || !text89 || !text92 || !text93 || !button1 || !button2 || !button3) {
+      console.error("One or more elements are missing");
+      return;
+    }
+
+    wavesurfer = window.WaveSurfer.create({
+      container: "#box76",
+      waveColor: "#2BFFCD",
+      progressColor: "red",
+    });
+
+    recordPlugin = wavesurfer.registerPlugin(window.WaveSurfer.Record.create());
+
+    setupRecognition();
+
+    button2.addEventListener("click", () => {
+      if (!recordPlugin.isRecording()) {
+	console.log("start")
+        recordPlugin.startRecording();
+        button2.innerText = "Stop Recording";
+        startTime = Date.now();
+        isRecording = true;
+        wordCount = 0;
+        recognition.start();
+      } else {
+        recordPlugin.stopRecording();
+        button2.innerText = "Start Recording";
+        isRecording = false;
+        recognition.stop();
+      }
+    });
+
+    button3.addEventListener("click", () => {
+      recordPlugin.stopRecording();
+      wavesurfer.empty();
+      button2.innerText = "Start Recording";
+      isRecording = false;
+      recognition.stop();
+      text88.textContent = '';
+      wordCount = 0;
+    });
+
+    button1.addEventListener("click", () => {
+      currentLanguage = currentLanguage === "en-US" ? "hi-IN" : "en-US";
+      button1.innerText = currentLanguage === "en-US" ? "English" : "Hindi";
+      recognition.lang = currentLanguage;
+
+      if (isRecording) {
+        recognition.stop();
+        setTimeout(() => recognition.start(), 100);
+      }
+    });
+
+    wavesurfer.on("decode", () => {
+      const currentTime = Date.now();
+      if (currentTime - lastTimeCheck >= wpmWindow) {
+        lastTimeCheck = currentTime;
+        const audioBuffer = wavesurfer.getDecodedData();
+        if (audioBuffer) {
+          analyzeAudio(audioBuffer, text89, text92, text93);
+        }
+      }
+    });
+  });
+
+  function setupRecognition() {
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+	console.log(recognition);
+	console.log("recog")
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = currentLanguage;
+
+    recognition.onresult = (event) => {
+      const text88 = document.querySelector("#text88");
+      const fullTranscript = Array.from(event.results).map(r => r[0].transcript).join(" ");
+      let newText = fullTranscript.substring(lastChar);
+      lastChar = fullTranscript.length;
+
+      const currentTime = Date.now();
+      const elapsedTimeSec = (currentTime - wordStartTime) / 1000;
+
+      if (newText.length !== 1) {
+        wordCount += newText.split(' ').length;
+
+        const fontFamily = determineFontFamily(volumeCategory, pitchCategory, speedCategory);
+        const styledWord = formatText(newText, volumeCategory);
+        const styledHTML = `<span style="font-family:${fontFamily};">${styledWord}</span>`;
+
+        text88.innerHTML += styledHTML + ' ';
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech Recognition Error:", event.error);
+    };
+
+    recognition.onend = () => {
+      if (isRecording) recognition.start();
+    };
+  }
+
+  function analyzeAudio(audioBuffer, text89, text92, text93) {
+    const rawData = audioBuffer.getChannelData(0);
+    let sumSquares = 0;
+    for (let i = 0; i < rawData.length; i++) sumSquares += rawData[i] ** 2;
+
+    let volume = Math.sqrt(sumSquares / rawData.length) * 100;
+    volumeCategory = volume > 10 ? "Loud" : volume < 4 ? "Soft" : "Normal";
+    text93.textContent = `${volumeCategory} ${volume.toFixed(2)}`;
+
+    let maxIndex = rawData.findIndex(val => val === Math.max(...rawData));
+    let pitch = maxIndex * (wavesurfer.options.sampleRate / rawData.length);
+    pitchCategory = pitch > 5000 ? "HighPitch" : pitch < 2000 ? "LowPitch" : "NormalPitch";
+    text92.textContent = `${pitchCategory} ${pitch.toFixed(2)}`;
+
+    let elapsedTime = (Date.now() - startTime) / 1000 / 60;
+    let wpm = wordCount / (elapsedTime || 1);
+    speedCategory = wpm > 400 ? "Fast" : wpm < 150 ? "Slow" : "Normal";
+    text89.textContent = `${speedCategory} (${wpm.toFixed(2)} WPM)`;
+
+    wordCount = 0;
+    startTime = Date.now();
+  }
+
+  function determineFontFamily(volume, pitch, speed) {
+    const traits = [];
+    if (volume !== 'Normal') traits.push(volume);
+    if (pitch !== 'NormalPitch') traits.push(pitch);
+    if (speed !== 'Normal') traits.push(speed);
+    return traits.length === 0 ? 'SoundType-Regular' : 'SoundType-' + traits.join('-');
+  }
+
+  function formatText(text, volumeCategory) {
+    if (volumeCategory === 'Loud') return text.toUpperCase();
+    if (volumeCategory === 'Soft') return text.toLowerCase();
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  }
+</script>
+
+      
 
 </body>
 </html>
