@@ -35,167 +35,261 @@
         import WaveSurfer from 'https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.esm.js';
         import RecordPlugin from 'https://unpkg.com/wavesurfer.js@7/dist/plugins/record.esm.js';
 
-        let wavesurfer;
-  let recordPlugin;
-  let recognition;
-  let isRecording = false;
-  let startTime;
-  let lastTimeCheck = Date.now();
-  let wpmWindow = 500;
-  let wordCount = 0;
-  let wordStartTime = 0;
-  let lastChar = 0;
-  let currentLanguage = 'en-US';
-  let volumeCategory, pitchCategory, speedCategory;
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const box = document.querySelector("#box76");
-    const text88 = document.querySelector("#text88");
-    const text89 = document.querySelector("#text89");
-    const text92 = document.querySelector("#text92");
-    const text93 = document.querySelector("#text93");
-    const button1 = document.querySelector("#button1");
-    const button2 = document.querySelector("#button2");
-    const button3 = document.querySelector("#button3");
-
-    if (!box || !text88 || !text89 || !text92 || !text93 || !button1 || !button2 || !button3) {
-      console.error("One or more elements are missing");
-      return;
-    }
-
-    wavesurfer = window.WaveSurfer.create({
-      container: "#box76",
-      waveColor: "#2BFFCD",
-      progressColor: "red",
+        
+let wavesurfer, recordPlugin, startTime, wordCount = 0;
+let lastTimeCheck = Date.now(); 
+let wpmWindow = 500;  
+let fontFamily;
+document.addEventListener("DOMContentLoaded", () => {
+    wavesurfer = WaveSurfer.create({
+        container: '#waveform',
+        waveColor: 'blue',
+        progressColor: 'red',
     });
 
-    recordPlugin = wavesurfer.registerPlugin(window.WaveSurfer.Record.create());
+    recordPlugin = wavesurfer.registerPlugin(RecordPlugin.create());
 
-    setupRecognition();
+    const textDisplayElement = document.getElementById('textDisplay');
+    const speechStatsElement = document.getElementById('speechStats');
+    const langToggleButton = document.getElementById('langToggle');
+    const resetButton = document.getElementById('reset');
 
-    button2.addEventListener("click", () => {
-      if (!recordPlugin.isRecording()) {
-	console.log("start")
-        recordPlugin.startRecording();
-        button2.innerText = "Stop Recording";
-        startTime = Date.now();
-        isRecording = true;
-        wordCount = 0;
-        recognition.start();
-      } else {
-        recordPlugin.stopRecording();
-        button2.innerText = "Start Recording";
-        isRecording = false;
-        recognition.stop();
-      }
-    });
+    let currentLanguage = 'en-IN';
 
-    button3.addEventListener("click", () => {
-      recordPlugin.stopRecording();
-      wavesurfer.empty();
-      button2.innerText = "Start Recording";
-      isRecording = false;
-      recognition.stop();
-      text88.textContent = '';
-      wordCount = 0;
-    });
-
-    button1.addEventListener("click", () => {
-      currentLanguage = currentLanguage === "en-US" ? "hi-IN" : "en-US";
-      button1.innerText = currentLanguage === "en-US" ? "English" : "Hindi";
-      recognition.lang = currentLanguage;
-
-      if (isRecording) {
-        recognition.stop();
-        setTimeout(() => recognition.start(), 100);
-      }
-    });
-
-    wavesurfer.on("decode", () => {
-      const currentTime = Date.now();
-      if (currentTime - lastTimeCheck >= wpmWindow) {
-        lastTimeCheck = currentTime;
-        const audioBuffer = wavesurfer.getDecodedData();
-        if (audioBuffer) {
-          analyzeAudio(audioBuffer, text89, text92, text93);
+    langToggleButton.addEventListener('click', function() {
+        if (currentLanguage === 'en-US') {
+            currentLanguage = 'hi-IN';
+            langToggleButton.textContent = 'Hindi';
+        } else {
+            currentLanguage = 'en-US';
+            langToggleButton.textContent = 'English';
         }
-      }
-    });
-  });
+        recognition.lang = currentLanguage;
 
-  function setupRecognition() {
-    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-	console.log(recognition);
-	console.log("recog")
+        if (isRecording) {
+            recognition.stop();
+            setTimeout(() => recognition.start(), 100);
+        }
+    });
+
+
+    // Start recording
+    document.getElementById("record").addEventListener("click", () => {
+        if (!recordPlugin.isRecording()) {
+            recordPlugin.startRecording();
+            document.getElementById("record").textContent = "Stop Recording";
+            document.getElementById("pause").style.display = "inline";
+            startTime = Date.now();
+            isRecording=true
+            wordCount = 0;
+            recognition.start(); // Start speech recognition when recording starts
+        } else {
+            recordPlugin.stopRecording();
+            document.getElementById("record").textContent = "Start Recording";
+            document.getElementById("pause").style.display = "none";
+            isRecording=false
+            recognition.stop(); // Stop speech recognition when recording stops
+        }
+    });
+   
+
+    // Pause/Resume recording
+    document.getElementById("pause").addEventListener("click", () => {
+        if (recordPlugin.isPaused()) {
+            recordPlugin.resumeRecording();
+            document.getElementById("pause").textContent = "Pause";
+        } else {
+            recordPlugin.pauseRecording();
+            document.getElementById("pause").textContent = "Resume";
+        }
+    });
+
+    // Speech recognition setup
+    let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = currentLanguage;
+    let newWords;
+    let word;
+    let transcript;
+    let pitchCategory, volumeCategory, speedCategory
 
-    recognition.onresult = (event) => {
-      const text88 = document.querySelector("#text88");
-      const fullTranscript = Array.from(event.results).map(r => r[0].transcript).join(" ");
-      let newText = fullTranscript.substring(lastChar);
-      lastChar = fullTranscript.length;
+    let wordStartTime = 0;
+    let wordCount = 0;
+    let lastChar = 0;
+    let newText;
+    let isRecording=false;
 
-      const currentTime = Date.now();
-      const elapsedTimeSec = (currentTime - wordStartTime) / 1000;
+    
 
-      if (newText.length !== 1) {
-        wordCount += newText.split(' ').length;
+    recognition.onresult = function(event) {
+        const lastResult = event.results[event.results.length - 1];
+        const transcript = Array.from(event.results).map(result => result[0].transcript).join(" ");
+        console.log(transcript)
+         newText = transcript.substring(lastChar);
+        console.log("new: ",newText)
+        
+        lastChar = transcript.length;
 
-        const fontFamily = determineFontFamily(volumeCategory, pitchCategory, speedCategory);
-        const styledWord = formatText(newText, volumeCategory);
-        const styledHTML = `<span style="font-family:${fontFamily};">${styledWord}</span>`;
 
-        text88.innerHTML += styledHTML + ' ';
-      }
-    };
+        const currentTime = Date.now();
+        const elapsedTimeSec = (currentTime - wordStartTime) / 1000;
+
+        if (newText.length!=1){
+            wordCount += newText.length;
+
+            updateSpeechStats(volumeCategory, pitchCategory, speedCategory);
+
+            const fontFamily = determineFontFamily(volumeCategory, pitchCategory, speedCategory);
+            const wordElement = document.createElement('span');
+            if (volumeCategory=='Loud'){
+                newText=newText.toUpperCase()
+            }
+            else if (volumeCategory=='Soft'){
+                newText=newText.toLowerCase()
+            }
+            else{
+                newText=newText.charAt(0).toUpperCase() + newText.slice(1).toLowerCase();
+            }
+
+            wordElement.textContent = newText + ' ';
+            wordElement.className = 'word';
+            wordElement.style.setProperty("font-family", fontFamily.trim().toString(), "important");
+            
+            // Set initial small font size
+            wordElement.style.fontSize = "10px"; 
+            wordElement.style.opacity = "0.2"; 
+            
+            // Apply transition
+            wordElement.style.transition = "font-size 0.5s ease-in, opacity 0.3s ease-in";
+            
+            // Append element first so changes are animated
+            textDisplayElement.appendChild(wordElement);
+            
+            // Allow the browser to render before applying final size
+            setTimeout(() => {
+                if (volumeCategory === 'Loud') {
+                    wordElement.style.fontSize = "40px";
+                } else if (volumeCategory === 'Normal') {
+                    wordElement.style.fontSize = "25px";
+                } else {
+                    wordElement.style.fontSize = "15px";
+                }
+                wordElement.style.opacity = "1";
+            }, 50); // A short delay to let the browser recognize the transition
+            
+            textDisplayElement.scrollTop = textDisplayElement.scrollHeight;
+    };}
+
+   
+
+    resetButton.addEventListener('click', async function() {
+        recordPlugin.stopRecording();
+        await wavesurfer.empty()
+        document.getElementById("record").textContent = "Start Recording";
+        document.getElementById("pause").style.display = "none";
+        isRecording=false
+        recognition.stop();
+        textDisplayElement.innerHTML = '';
+        speechStatsElement.textContent = 'Speech characteristics will appear here';
+        wordCount = 0;
+    });
+
+  
 
     recognition.onerror = (event) => {
-      console.error("Speech Recognition Error:", event.error);
+        console.error("Speech Recognition Error:", event.error);
     };
 
     recognition.onend = () => {
-      if (isRecording) recognition.start();
+        if (recordPlugin.isRecording()) {
+            recognition.start(); // Restart recognition if recording is still active
+        }
     };
-  }
+    let currentTime;
 
-  function analyzeAudio(audioBuffer, text89, text92, text93) {
-    const rawData = audioBuffer.getChannelData(0);
-    let sumSquares = 0;
-    for (let i = 0; i < rawData.length; i++) sumSquares += rawData[i] ** 2;
+    // Analyze audio in real-time after decoding
+    wavesurfer.on('decode', () => {
+        currentTime = Date.now();
+        if (currentTime - lastTimeCheck >= wpmWindow) {
+            lastTimeCheck = currentTime;
+            
+            const audioBuffer = wavesurfer.getDecodedData();
+            if (audioBuffer) {
+                analyzeAudio(audioBuffer);  // Only analyze once per window
+            }
+        }
+    });
 
-    let volume = Math.sqrt(sumSquares / rawData.length) * 100;
-    volumeCategory = volume > 10 ? "Loud" : volume < 4 ? "Soft" : "Normal";
-    text93.textContent = `${volumeCategory} ${volume.toFixed(2)}`;
+    // Analyze audio (volume, pitch, speech speed)
+    function analyzeAudio(audioBuffer) {
+        // console.log(audioBuffer);
+        const rawData = audioBuffer.getChannelData(0);  // Get audio samples for the first channel
 
-    let maxIndex = rawData.findIndex(val => val === Math.max(...rawData));
-    let pitch = maxIndex * (wavesurfer.options.sampleRate / rawData.length);
-    pitchCategory = pitch > 5000 ? "HighPitch" : pitch < 2000 ? "LowPitch" : "NormalPitch";
-    text92.textContent = `${pitchCategory} ${pitch.toFixed(2)}`;
+        // Volume Calculation (RMS)
+        let sumSquares = 0;
+        for (let i = 0; i < rawData.length; i++) {
+            sumSquares += rawData[i] ** 2;
+        }
+        let volume = Math.sqrt(sumSquares / rawData.length) * 100;
+        volumeCategory = volume > 10 ? "Loud" : volume < 4 ? "Soft" : "Normal";
 
-    let elapsedTime = (Date.now() - startTime) / 1000 / 60;
-    let wpm = wordCount / (elapsedTime || 1);
-    speedCategory = wpm > 400 ? "Fast" : wpm < 150 ? "Slow" : "Normal";
-    text89.textContent = `${speedCategory} (${wpm.toFixed(2)} WPM)`;
+        // console.log("Volume:", volume.toFixed(2));
+        document.getElementById("volume-level").textContent = `${volumeCategory} ${volume.toFixed(2)}`;
 
-    wordCount = 0;
-    startTime = Date.now();
-  }
+        // Pitch Calculation (Estimate based on dominant frequency)
+        let maxIndex = rawData.findIndex((val) => val === Math.max(...rawData));
+        let pitch = maxIndex * (wavesurfer.options.sampleRate / rawData.length);
+        pitchCategory = pitch > 5000 ? "HighPitch" : pitch < 2000 ? "LowPitch" : "NormalPitch";
 
-  function determineFontFamily(volume, pitch, speed) {
-    const traits = [];
-    if (volume !== 'Normal') traits.push(volume);
-    if (pitch !== 'NormalPitch') traits.push(pitch);
-    if (speed !== 'Normal') traits.push(speed);
-    return traits.length === 0 ? 'SoundType-Regular' : 'SoundType-' + traits.join('-');
-  }
+        document.getElementById("pitch-level").textContent = `${pitchCategory} ${pitch.toFixed(2)}`;
+        // console.log("Pitch:", pitch.toFixed(2), "Hz");
 
-  function formatText(text, volumeCategory) {
-    if (volumeCategory === 'Loud') return text.toUpperCase();
-    if (volumeCategory === 'Soft') return text.toLowerCase();
-    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-  }
+        // Speech Speed Calculation (WPM over the last window)
+        let elapsedTime = (currentTime - startTime) / 1000 / 60;  // Convert ms to minutes
+        let wpm = wordCount / (elapsedTime || 1);  // Prevent division by zero
+
+        // console.log("Speed:", wpm);
+        speedCategory = wpm > 400 ? "Fast" : wpm < 150 ? "Slow" : "Normal";
+        document.getElementById("speed-level").textContent = `${speedCategory} (${wpm.toFixed(2)} WPM)`;
+
+       
+
+        // Reset word count and start time for the next window
+        wordCount = 0;
+        startTime = Date.now(); // Start new time window
+    }
+
+    function determineFontFamily(volume, pitch, speed) {
+        const characteristics = [];
+
+        if (volume !== 'Normal') characteristics.push(volume);
+        if (pitch !== 'NormalPitch') characteristics.push(pitch);
+        if (speed !== 'Normal') characteristics.push(speed);
+        return characteristics.length === 0 ? 'SoundType-Regular' : 'SoundType-' + characteristics.join('-');
+    }
+
+    function updateSpeechStats(volume, pitch, speed) {
+        const characteristics = [];
+        if (volume !== 'Normal') characteristics.push(volume.toUpperCase());
+        if (pitch !== 'NormalPitch') {
+            characteristics.push(pitch === 'HighPitch' ? 'HIGH PITCH' : 'LOW PITCH');
+        }
+        if (speed !== 'Normal') characteristics.push(speed.toUpperCase());
+
+        speechStatsElement.textContent = characteristics.length === 0 ? 'Your speech was at a NORMAL level.' : 'Your speech was ' + characteristics.join(' & ') + '.';
+    }
+
+    // Handle pause/resume logic for speech recognition (optional)
+    document.getElementById("pause").addEventListener("click", () => {
+        if (recognition.continuous) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    });
+});
+
 </script>
 
       
