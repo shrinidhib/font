@@ -121,6 +121,43 @@
 .main{
     font-family: 'main';
 }
+
+.regular{
+    font-family: 'SoundType-Regular';
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 480px;
+    height: 15px;
+    background: linear-gradient(to right, #2bffcd 50%, #231f20 50%);
+    border-radius: 0;
+    outline: none;
+    cursor: pointer;
+    border: 1px white solid
+  }
+  
+  /* Thumb for Chrome, Safari */
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 60px;
+    background: #2bffcd;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  
+  /* Thumb for Firefox */
+  .slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #2bffcd;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  
 /* 
 body {
     font-family: 'SoundType-Regular';
