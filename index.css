@@ -128,7 +128,7 @@
 
 .slider {
     -webkit-appearance: none;
-    width: 480px;
+    width: 410px;
     height: 15px;
     background: linear-gradient(to right, #2bffcd 50%, #231f20 50%);
     border-radius: 0;
